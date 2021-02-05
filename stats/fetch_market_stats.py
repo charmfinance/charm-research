@@ -28,7 +28,8 @@ def fetch_market(key, address):
         decimals = contract.decimals()
         strikes = [contract.strikePrices(i) * 1e-18 for i in range(contract.numStrikes())]
         expiry_price = contract.expiryPrice() * 1e-18
-        assert expiry_price > 0
+        if expiry_price == 0:
+            print("Warning! Not settled yet so pnls won't be accurate")
 
         # fetch trades
         events = _fetch_events(key, addr, EVENT_NAMES)
@@ -46,6 +47,8 @@ def fetch_market(key, address):
         if not is_put:
             df["pnl"] *= expiry_price
 
+        df["base_qty"] = df["qty"] * df["strike"] if is_put else df["qty"]
+
         # calculate option payoffs
         call_payoff = np.maximum(0, expiry_price - df["strike"])
         put_payoff = np.maximum(0, df["strike"] - expiry_price)
@@ -57,19 +60,13 @@ def fetch_market(key, address):
 
         # print stats
         print(addr)
-        print("Num buys:         ", (df["event"] == "Buy").sum())
-        print("Num sells:        ", (df["event"] == "Sell").sum())
-        print("Num trades:       ", len(df))
-        print("Traded volume:    ", df["qty"].abs().sum())
+        _print_stats(df)
         print()
 
     # print total stats
     merged = pd.concat(dfs)
     print("Total")
-    print("Num buys:         ", (merged["event"] == "Buy").sum())
-    print("Num sells:        ", (merged["event"] == "Sell").sum())
-    print("Num trades:       ", len(merged))
-    print("Traded volume:    ", merged["qty"].abs().sum())
+    _print_stats(merged)
     print()
 
     # calculate volume and pnl per account
@@ -83,6 +80,16 @@ def fetch_market(key, address):
     print()
     print(accounts["roi"].sort_values(ascending=False).head(10))
     print()
+
+
+def _print_stats(df):
+    print("Num buys:           ", (df["event"] == "Buy").sum())
+    print("Num sells:          ", (df["event"] == "Sell").sum())
+    print("Num trades:         ", len(df))
+    print("Contracts traded:   ", df["qty"].abs().sum())
+    print("Volume traded:      ", df["base_qty"].abs().sum())
+    print("Fees earned:        ", df["base_qty"][df["event"] == "Buy"].sum() * 0.01)
+    print("Median trade size:  ", df["qty"].abs().median())
 
 
 def _fetch_events(key, address, event_names):
