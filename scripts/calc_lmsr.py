@@ -3,6 +3,10 @@ from scipy.optimize import minimize
 import numpy as np
 
 
+# example usage (for 9 spreads, i.e. 10 strikes)
+# $ poetry run python scripts/calc_lmsr.py --b 7 21 0 0 0 0 0 0 0 0
+
+
 @click.command()
 @click.option("--b", type=float)
 @click.argument("q", nargs=-1, type=float)
