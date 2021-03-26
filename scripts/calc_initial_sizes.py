@@ -4,6 +4,7 @@ import numpy as np
 
 
 # example usage (for 9 spreads, i.e. 10 strikes)
+# prices passed in are prices of calls in terms of underlying
 # $ poetry run python scripts/calc_initial_sizes.py --b 12 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45
 
 
