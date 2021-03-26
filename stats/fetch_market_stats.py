@@ -5,8 +5,6 @@ import pandas as pd
 import requests
 
 
-LAST_BLOCK = 12_000_000
-
 EVENT_NAMES = {
     "Buy",
     "Sell",
@@ -38,8 +36,9 @@ def fetch_market(key, address):
         mult = 1 if is_put else underlying_price
 
         # fetch trades
-        events = _fetch_events(key, addr, EVENT_NAMES)
+        events = _fetch_events(key, addr, EVENT_NAMES, brownie.web3.eth.blockNumber)
         df = pd.DataFrame(events)
+        print(events)
 
         if "isSettled" not in df.columns:
             df["isSettled"] = False
@@ -98,15 +97,15 @@ def fetch_market(key, address):
     accounts["lp_yield"] = accounts["lp_payoff"] / accounts["lp_amount"]
 
     # print leaderboards
-    print(accounts["pnl_payoff"].sort_values(ascending=False).head(10))
+    print(accounts["pnl_payoff"].sort_values(ascending=False).head(21))
     print()
-    print(accounts["roi"].sort_values(ascending=False).head(10))
+    print(accounts["roi"].sort_values(ascending=False).head(21))
     print()
-    print(accounts["lp_yield"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(10))
+    print(accounts["lp_yield"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(21))
     print()
-    print(accounts["lp_payoff"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(10))
+    print(accounts["lp_payoff"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(21))
     print()
-    print(accounts["lp_amount"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(10))
+    print(accounts["lp_amount"][accounts["lp_amount"] != 0].sort_values(ascending=False).head(21))
     print()
 
 
@@ -120,8 +119,8 @@ def _print_stats(df):
     print("Median trade size:  ", df["qty"][df["qty"] != 0].abs().median())
 
 
-def _fetch_events(key, address, event_names):
-    url = f"https://api.covalenthq.com/v1/1/events/address/{address}/?key={key}&starting-block={LAST_BLOCK-999999}&ending-block={LAST_BLOCK}&page-size=999999"
+def _fetch_events(key, address, event_names, block_height):
+    url = f"https://api.covalenthq.com/v1/1/events/address/{address}/?key={key}&starting-block={block_height-999999}&ending-block={block_height}&page-size=999999"
     resp = requests.get(url)
     data = resp.json()
     assert not data["data"]["pagination"]
