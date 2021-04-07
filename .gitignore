@@ -4,5 +4,6 @@ __pycache__
 build/
 reports/
 .ipynb_checkpoints/
-
 node_modules/
+
+research/

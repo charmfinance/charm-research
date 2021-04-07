@@ -52,6 +52,13 @@ def calc_put_lp_payoff(underlying_price, strike_prices, b):
     return lmsr(q, b) - (payoff * q).sum()
 
 
+def calc_call_spread_prices(underlying_price, strike_prices, iv, days_to_expiry, num_samples=1000):
+    sigma = iv * np.sqrt(days_to_expiry / 365.25)
+    sample = underlying_price * (1.0 + sigma * np.random.randn(num_samples))
+    call_prices = np.array([np.maximum(sample - k, 0.0).mean() for k in strike_prices])
+    return np.diff(np.concatenate([[0], call_prices[::-1] / underlying_price, [1]]))[::-1]
+
+
 # calculate what q would be at expiry assuming market is efficient and no arbs exist at expiry
 def calc_q(payoff, b):
     def loss(q):
