@@ -60,7 +60,7 @@ def _fetch_events(key, address, block_height):
 
 
 def _fetch_tx(key, tx_hash):
-    url = f"https://api.covalenthq.com/v1/1/transaction_v2/{tx_hash}/"
+    url = f"https://api.covalenthq.com/v1/1/transaction_v2/{tx_hash}/?key={key}"
     resp = requests.get(url)
     data = resp.json()
     assert not data["data"]["pagination"]
